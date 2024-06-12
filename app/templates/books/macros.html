@@ -23,16 +23,6 @@
                         value="{{request.form.get('name') or book.name or ''}}">
                 </div>
                 <div class="mb-3">
-                    <label for="genres">Жанр</label>
-                    <select class="form-select" name="genres" id="genres" multiple="multiple">
-                        {% for genre in genres %}
-                        <option value="{{ genre.id }}" {% if genre.id | string in request.form.getlist('genres') or
-                            genre.id in book.genres|map(attribute="id" ) %}selected{% endif %}>{{
-                            genre.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="mb-3">
                     <label for="author">Автор</label>
                     <input class="form-control" type="text" name="author" id="author"
                         value="{{request.form.get('author') or book.author or ''}}">
@@ -44,12 +34,12 @@
                 </div>
                 <div class="mb-3">
                     <label for="year_release">Год выпуска</label>
-                    <input class="form-control" type="text" name="year_release" id="year_release"
+                    <input class="form-control" type="number" name="year_release" id="year_release"
                         value="{{request.form.get('year_release') or book.year_release or ''}}">
                 </div>
                 <div class="mb-3">
                     <label for="pages_volume">Объём (в страницах)</label>
-                    <input class="form-control" type="text" name="pages_volume" id="pages_volume"
+                    <input class="form-control" type="number" name="pages_volume" id="pages_volume"
                         value="{{request.form.get('pages_volume')  or book.pages_volume or ''}}">
                 </div>
                 <div class="mb-3 d-flex flex-column flex-grow-1">
@@ -71,7 +61,17 @@
             </div>
             {% endif %}
         </div>
-
+        <div class="mb-3">
+            <label for="genres">Жанры</label>
+            <select class="form-select" name="genres" id="genres" multiple>
+                {% for genre in genres %}
+                <option value="{{ genre.id }}" {% if genre.id in request.form.getlist('genres') or
+                    genre in book.genres %}selected{% endif %}>
+                    {{ genre.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
         <div class="mb-3 text-center">
             <input type="submit" class="btn btn-dark" value="Сохранить">
         </div>

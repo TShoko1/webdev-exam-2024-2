@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, session, url_for, flash, abort, send_from_directory
 from flask_login import login_required, current_user
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, or_
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
@@ -27,21 +27,51 @@ from models import Book, Genre, Image, Review
 from auth import init_login_manager, check_rights, bp as auth_bp
 from reviews import bp as reviews_bp
 
-
 init_login_manager(app)
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(reviews_bp)
 
-
-
 @app.route('/')
 def index():
     page = request.args.get('page', 1, type=int)
-    books = Book.query.order_by(Book.id.desc())
-    pagination = books.paginate(page=page, per_page=app.config['PER_PAGE'])
+    query = Book.query
+
+    title = request.args.get('title')
+    if title:
+        query = query.filter(Book.name.ilike(f'%{title}%'))
+    
+    author = request.args.get('author')
+    if author:
+        query = query.filter(Book.author.ilike(f'%{author}%'))
+    
+    genres = request.args.getlist('genres')
+    if genres:
+        query = query.filter(Book.genres.any(Genre.id.in_(genres)))
+    
+    year = request.args.get('year')
+    if year:
+        query = query.filter(Book.year_release == int(year))
+    
+    volume_from = request.args.get('volume_from')
+    if volume_from:
+        query = query.filter(Book.pages_volume >= int(volume_from))
+    
+    volume_to = request.args.get('volume_to')
+    if volume_to:
+        query = query.filter(Book.pages_volume <= int(volume_to))
+    
+    pagination = query.order_by(Book.id.desc()).paginate(page=page, per_page=app.config['PER_PAGE'])
     books = pagination.items
-    return render_template("index.html", pagination=pagination, books=books)
+
+    # Get all genres for the filter form
+    genres = Genre.query.all()
+
+    # Get all distinct years from the books for the filter form
+    years = [book.year_release for book in Book.query.with_entities(Book.year_release).distinct().all()]
+
+    return render_template("index.html", pagination=pagination, books=books, genres=genres, years=years)
+
 
 @app.route('/images/<image_id>')
 def image(image_id):
