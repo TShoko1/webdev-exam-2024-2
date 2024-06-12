@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-<!-- Импортируем макро для отображения рецензии -->
+<!-- Импортируем макрос для отображения рецензии -->
 {% from 'reviews/macros.html' import review_view %}
 
 {% block content %}
@@ -14,23 +14,23 @@
             {% if book.genres %}
             <h3>жанр(ы):{% for genre in book.genres %} 
                 {% if loop.last %}
-                {{genre.name}}.
+                {{ genre.name }}.
                 {% else %}
-                {{genre.name}};
+                {{ genre.name }};
                 {% endif %}
                 {% endfor %}</h3>
             {% endif %}
             <div>
-                <h3>Автор: {{book.author}}</h3>
+                <h3>Автор: {{ book.author }}</h3>
             </div>
             <div>
-                <h3>Издательство: {{book.publisher}}</h3>
+                <h3>Издательство: {{ book.publisher }}</h3>
             </div>
             <div>
-                <h3>Год выпуска: {{book.year_release}}</h3>
+                <h3>Год выпуска: {{ book.year_release }}</h3>
             </div>
             <div>
-                <h3>Объем (в страницах): {{book.pages_volume}}</h3>
+                <h3>Объем (в страницах): {{ book.pages_volume }}</h3>
             </div>
         </div>
     </div>
@@ -39,7 +39,7 @@
 <div class="container mt-5">
     <section class="book_short_desc mb-5">
         <h2 class="mb-3 text-center text-uppercase font-weight-bold">О книге</h2>
-        <p>{{ book.short_desc | safe() }}</p>
+        <p>{{ book.short_desc | safe }}</p>
     </section>
 </div>
 
@@ -47,7 +47,7 @@
     <h2 class="mb-3 text-center text-uppercase font-weight-bold">Рецензии</h2>
     {% if reviews %}
     {% for review in reviews %}
-    {{ review_view(review)}}
+    {{ review_view(review) }}
     {% endfor %}
     {% endif %}
 </section>
@@ -57,10 +57,8 @@
     {{ review_view(user_review) }}
     {% elif current_user.is_authenticated %}
     <div class="container text-center">
-        <a class="custom_link text-black btn btn-primary" href="{{url_for('reviews.new', book_id=book.id)}}">Написать
-            рецензию</a>
+        <a class="custom_link text-black btn btn-primary" href="{{ url_for('reviews.new', book_id=book.id) }}">Написать рецензию</a>
     </div>
     {% endif %}
 </section>
-
 {% endblock %}

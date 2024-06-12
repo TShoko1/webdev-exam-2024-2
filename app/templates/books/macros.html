@@ -79,53 +79,8 @@
 </div>
 {% endmacro %}
 
-{% macro render_last_popular_book_item(current_user, book) %}
 
-<div class="col-12 col-lg-3 p-3 border rounded mb-3" data-url="{{ url_for('show', book_id=book.id) }}">
-    <div class="row">
-        <!-- Обложка книги -->
-        <div class="d-flex align-items-center justify-content-center mb-3">
-            <div class="book-logo" style="background-image: url({{ url_for('image', image_id=book.image_id) }});">
-            </div>
-        </div>
-        <!-- Книга -->
-        <div class="col-md-9 align-items-center w-100">
-            <div class="d-flex">
-                <h4 id="bookName" class="text-uppercase">{{ book.name }}</h4>
-                <div class="ms-auto rating d-flex flex-column align-items-end">
-                    <p><span>★</span> <span>{{ "%.2f" | format(book.rating) }}</span></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="ms-4">
-        <ul class="list-group ">
-            <li class="list-group-item text-center actions-li">
-                <a class="custom_link text-black btn btn-info"
-                    href="{{url_for('show', book_id=book.id)}}">Подробнее</a>
-            </li>
-            {% if current_user.is_authenticated %}
-            {% if current_user.can('edit') %}
-            <li class="list-group-item text-center actions-li">
-                <a class="custom_link text-black btn btn-warning"
-                    href="{{url_for('edit', book_id=book.id)}}">Редактировать</a>
-            </li>
-            {% endif %}
-            {% if current_user.can('delete') %}
-            <li class="list-group-item text-center actions-li">
-                <button class="text-black btn btn-danger" data-url="{{ url_for('delete', book_id=book.id)}}"
-                    data-bs-toggle="modal" data-bs-target="#deleteBook">Удалить</button>
-            </li>
-            {% endif %}
-            {% endif %}
-        </ul>
-    </div>
-</div>
-
-{% endmacro %}
-
-{% macro render_book_item(current_user, book) %}
+{% macro render_book_item(current_user, book, views_count) %}
 <div class="row p-3 border rounded mb-3" data-url="{# url_for('show', book_id=book.id) #}">
     <div class="row">
         <!-- Обложка книги -->
@@ -138,8 +93,12 @@
             <div class="d-flex">
                 <h4 id="bookName" class="text-uppercase">{{ book.name }}</h4>
                 <div class="ms-auto rating d-flex flex-column align-items-end">
+                    {% if views_count %}
+                    <p>Просмотров за последние 3 месяца: {{views_count}}</p>
+                    {% endif %}
                     <p><span>★</span> <span>{{ "%.2f" | format(book.rating) }}</span></p>
                 </div>
+
             </div>
             {% if book.genres %}
             <h3>жанр(ы):</h3>

@@ -193,14 +193,8 @@ def show(book_id):
         user_review = reviews.filter_by(user_id=current_user.id).first()
     # Получаем все рецензии
     reviews.all()
+    
     return render_template('books/show.html',
                            book=book,
                            reviews=reviews,
                            user_review=user_review)
-
-
-
-
-
-
-
