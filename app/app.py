@@ -49,9 +49,9 @@ def index():
     if genres:
         query = query.filter(Book.genres.any(Genre.id.in_(genres)))
     
-    year = request.args.get('year')
-    if year:
-        query = query.filter(Book.year_release == int(year))
+    years = request.args.getlist('years')
+    if years:
+        query = query.filter(Book.year_release.in_(years))
     
     volume_from = request.args.get('volume_from')
     if volume_from:
@@ -64,13 +64,14 @@ def index():
     pagination = query.order_by(Book.id.desc()).paginate(page=page, per_page=app.config['PER_PAGE'])
     books = pagination.items
 
-    # Get all genres for the filter form
+    # Получаем все жанры для формы фильтрации
     genres = Genre.query.all()
 
-    # Get all distinct years from the books for the filter form
+    # Получаем все уникальные годы из книг для формы фильтрации
     years = [book.year_release for book in Book.query.with_entities(Book.year_release).distinct().all()]
 
     return render_template("index.html", pagination=pagination, books=books, genres=genres, years=years)
+
 
 
 @app.route('/images/<image_id>')
@@ -123,17 +124,16 @@ def new():
 
         if not (f and f.filename):
             flash('У книги должна быть обложка', 'danger')
-    
+
     '''
     Сохранение книги в базу данных
     '''
-    
+
     genres = Genre.query.all()
     return render_template('books/create_edit.html',
                         action_category='create',
                         genres=genres,
                         book={})
-
 
 @app.route('/<int:book_id>/edit', methods=["POST", "GET"])
 @login_required

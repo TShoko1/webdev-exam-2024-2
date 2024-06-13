@@ -2,7 +2,6 @@
 {% from 'pagination.html' import render_pagination %}
 {% from 'books/macros.html' import render_book_item %}
 
-
 {% block head %}
 {{ super() }}
 <script defer src="{{ url_for('static', filename='scripts/delete_book.js') }}"></script>
@@ -10,16 +9,14 @@
 
 {% block content %}
 <div class="container">
-
     <div class="my-5">
-
         <h2 class="mb-3 text-center text-uppercase font-weight-bold">Каталог книг</h2>
 
         <!-- Форма поиска -->
-        <form method="GET" action="{{ url_for('index') }}" class="mb-4">
+        <form method="get" action="{{ url_for('index') }}">
             <div class="row">
                 <div class="col-md-3">
-                    <input type="text" name="title" class="form-control" placeholder="Название" value="{{ request.args.get('title', '') }}">
+                    <input type="text" name="title" class="form-control" placeholder="Название книги" value="{{ request.args.get('title', '') }}">
                 </div>
                 <div class="col-md-3">
                     <input type="text" name="author" class="form-control" placeholder="Автор" value="{{ request.args.get('author', '') }}">
@@ -31,23 +28,24 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <select name="year" class="form-control">
-                        <option value="">Год</option>
+                <div class="col-md-3">
+                    <select name="years" class="form-control" multiple>
                         {% for year in years %}
-                        <option value="{{ year }}" {% if year|string == request.args.get('year') %}selected{% endif %}>{{ year }}</option>
+                        <option value="{{ year }}" {% if year|string in request.args.getlist('years') %}selected{% endif %}>{{ year }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-1">
-                    <input type="text" name="volume_from" class="form-control" placeholder="объём от" value="{{ request.args.get('volume_from', '') }}">
-                </div>
-                <div class="col-md-1">
-                    <input type="text" name="volume_to" class="form-control" placeholder="объём до" value="{{ request.args.get('volume_to', '') }}">
-                </div>
             </div>
-            <div class="text-center mt-3">
-                <button type="submit" class="btn btn-dark">Найти</button>
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <input type="text" name="volume_from" class="form-control" placeholder="Объем от" value="{{ request.args.get('volume_from', '') }}">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" name="volume_to" class="form-control" placeholder="Объем до" value="{{ request.args.get('volume_to', '') }}">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">Найти</button>
+                </div>
             </div>
         </form>
 
@@ -66,10 +64,10 @@
             <a class="btn btn-lg btn-dark" href="{{ url_for('new') }}">Добавить книгу</a>
         </div>
         {% endif %}
+
         {% if current_user.is_authenticated and current_user.can('delete') %}
         <!-- Modal to confirm the deletion -->
-        <div class="modal fade" id="deleteBook" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-            aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal fade" id="deleteBook" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -77,7 +75,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Вы уверены, что хотите удалить книгу? <span id="bookLogin"></span>?</p>
+                        <p>Вы уверены, что хотите удалить книгу <span id="bookLogin"></span>?</p>
                         <form class="d-none" action="" method="POST">
                             <input type="submit" id="deleteBookButton">
                         </form>
