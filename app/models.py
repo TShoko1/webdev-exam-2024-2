@@ -129,13 +129,13 @@ class User(db.Model, UserMixin):
                          self.first_name,
                          self.middle_name or ""])
     def is_admin(self):
-        return self.role_id == current_app.config['ADMIN_ROLE_ID']
+        return self.role_id == current_app.config['ADMIN_ROLE_ID']  #ADMIN_ROLE_ID = 1 
 
     def is_moderator(self):
-        return self.role_id == current_app.config['MODERATOR_ROLE_ID']
+        return self.role_id == current_app.config['MODERATOR_ROLE_ID']  #MODERATOR_ROLE_ID = 2
 
     def is_user(self):
-        return self.role_id == current_app.config['USER_ROLE_ID']
+        return self.role_id == current_app.config['USER_ROLE_ID']  #USER_ROLE_ID = 3
 
     def can(self, action, record=None):
         users_policy = UsersPolicy(record)

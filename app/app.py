@@ -1,10 +1,9 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash, abort, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, abort, send_from_directory
 from flask_login import login_required, current_user
-from sqlalchemy import MetaData, or_
+from sqlalchemy import MetaData
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
-from datetime import datetime, timedelta
 
 app = Flask(__name__)
 application = app
@@ -61,7 +60,7 @@ def index():
     if volume_to:
         query = query.filter(Book.pages_volume <= int(volume_to))
     
-    pagination = query.order_by(Book.id.desc()).paginate(page=page, per_page=app.config['PER_PAGE'])
+    pagination = query.order_by(Book.id.desc()).paginate(page=page, per_page=app.config['PER_PAGE'])  # PER_PAGE=4
     books = pagination.items
 
     # Получаем все жанры для формы фильтрации
@@ -73,23 +72,21 @@ def index():
     return render_template("index.html", pagination=pagination, books=books, genres=genres, years=years)
 
 
-
 @app.route('/images/<image_id>')
 def image(image_id):
     img = Image.query.get(image_id)
     if img is None:
         abort(404)
-    return send_from_directory(app.config['UPLOAD_FOLDER'],
-                               img.file_name)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], img.file_name)
+
 
 from tool import ImageSaver
 
-def extract_params(dict):
-    return {p: request.form.get(p) for p in dict}
+def extract_params(params_list):
+    return {p: request.form.get(p) for p in params_list}
 
 BOOKS_PARAMS = [
-    'name', 'author', 'publisher', 'year_release', 'pages_volume',
-    'short_desc',
+    'name', 'author', 'publisher', 'year_release', 'pages_volume', 'short_desc',
 ]
 
 @app.route('/new', methods=["POST", "GET"])
@@ -104,13 +101,9 @@ def new():
             params['year_release'] = int(params['year_release'])
             params['pages_volume'] = int(params['pages_volume'])
             genres = request.form.getlist('genres')
-            genres_list = []
-            for i in genres:
-                genre = Genre.query.filter_by(id=i).first()
-                genres_list.append(genre)
+            genres_list = [Genre.query.get(genre_id) for genre_id in genres]
 
             book = Book(**params, image_id=img.id)
-            book.prepare_to_save()
             book.genres = genres_list
             try:
                 db.session.add(book)
@@ -119,21 +112,14 @@ def new():
                 return redirect(url_for('index'))
             except:
                 db.session.rollback()
-                flash(
-                    'При сохранении данных возникла ошибка. Проверьте корректность введённых данных.', 'success')
+                flash('При сохранении данных возникла ошибка. Проверьте корректность введённых данных.', 'danger')
 
         if not (f and f.filename):
             flash('У книги должна быть обложка', 'danger')
 
-    '''
-    Сохранение книги в базу данных
-    '''
-
     genres = Genre.query.all()
-    return render_template('books/create_edit.html',
-                        action_category='create',
-                        genres=genres,
-                        book={})
+    return render_template('books/create_edit.html', action_category='create', genres=genres, book={})
+
 
 @app.route('/<int:book_id>/edit', methods=["POST", "GET"])
 @login_required
@@ -144,7 +130,8 @@ def edit(book_id):
         params['year_release'] = int(params['year_release'])
         params['pages_volume'] = int(params['pages_volume'])
         genres = request.form.getlist('genres')
-        genres_list = []
+        genres_list = [Genre.query.get(genre_id) for genre_id in genres]
+
         book = Book.query.get(book_id)
         book.name = params['name']
         book.author = params['author']
@@ -152,11 +139,8 @@ def edit(book_id):
         book.year_release = params['year_release']
         book.pages_volume = params['pages_volume']
         book.short_desc = params['short_desc']
-
-        for i in genres:
-            genre = Genre.query.filter_by(id=i).first()
-            genres_list.append(genre)
         book.genres = genres_list
+
         try:
             db.session.add(book)
             db.session.commit()
@@ -164,67 +148,63 @@ def edit(book_id):
             return redirect(url_for('index'))
         except:
             db.session.rollback()
-
-        flash('При обновления данных возникла ошибка. Проверьте корректность введённых данных.', 'danger')
+            flash('При обновлении данных возникла ошибка. Проверьте корректность введённых данных.', 'danger')
 
     book = Book.query.get(book_id)
     genres = Genre.query.all()
-    return render_template('books/create_edit.html',
-                           action_category='edit',
-                           genres=genres,
-                           book=book,)
+    return render_template('books/create_edit.html', action_category='edit', genres=genres, book=book)
 
-# Удаление книги
+
 @app.route('/<int:book_id>/delete', methods=['POST'])
 @login_required
 @check_rights('delete')
 def delete(book_id):
     book = Book.query.get(book_id)
-    # Проверка зависимости у обложки
-    references = len(Book.query.filter_by(image_id=book.image.id).all())
-       
+    if not book:
+        flash('Книга не найдена', 'danger')
+        return redirect(url_for('index'))
+    
     try:
-         # Удаление всех зависимостей
-        for item in Review.query.filter_by(book_id=book_id):
-            db.session.delete(item)
+        # Удаление всех рецензий
+        reviews = Review.query.filter_by(book_id=book_id).all()
+        for review in reviews:
+            db.session.delete(review)
+        
+        # Проверка зависимости у обложки
+        image_references = Book.query.filter_by(image_id=book.image_id).count()
+        image = Image.query.get(book.image_id)
 
         db.session.delete(book)
-        # Если зависимость единственная, то обложку можно удалить
-        if references == 1:
-            image = Image.query.get(book.image.id)
-            delete_path = os.path.join(
-                app.config['UPLOAD_FOLDER'],
-                image.file_name)
+        
+        # Удаление обложки, если нет других зависимостей
+        if image_references == 1:
             db.session.delete(image)
-            os.remove(delete_path)
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], image.file_name))
+
         db.session.commit()
-        flash('Удаление книги прошло успешно', 'success')
-    except:
+        flash('Книга успешно удалена', 'success')
+    except Exception as e:
         db.session.rollback()
-        flash('Во время удаления книги произошла ошибка', 'danger')
+        flash(f'Ошибка при удалении книги: {str(e)}', 'danger')
 
     return redirect(url_for('index'))
 
-# Просмотр книги
+
 @app.route('/<int:book_id>')
 def show(book_id):
     book = Book.query.get(book_id)
+    if not book:
+        abort(404)
+
     book.prepare_to_html()
-    # Получаем все рецензии
-    reviews = Review.query.filter_by(book_id=book_id)
-    # Каждую из рецензий подготавливаем для отображения
+    reviews = Review.query.filter_by(book_id=book_id).all()
     for review in reviews:
         review.prepare_to_html()
-    # Заглушка, т.к. у пользователя может не быть рецензии
-    user_review = None
-    # Если у пользователя есть идентификатор
-    if current_user.get_id():
-        # Извлекаем рецензии пользователя
-        user_review = reviews.filter_by(user_id=current_user.id).first()
-    # Получаем все рецензии
-    reviews.all()
     
-    return render_template('books/show.html',
-                           book=book,
-                           reviews=reviews,
-                           user_review=user_review)
+    user_review = None
+    if current_user.is_authenticated:
+        user_review = Review.query.filter_by(book_id=book_id, user_id=current_user.id).first()
+
+    return render_template('books/show.html', book=book, reviews=reviews, user_review=user_review)
+
+
