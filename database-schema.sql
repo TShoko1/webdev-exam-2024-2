@@ -29,26 +29,6 @@ CREATE TABLE `alembic_version` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `book_visits`
---
-
-DROP TABLE IF EXISTS `book_visits`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `book_visits` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
-  `book_id` int(11) NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `fk_book_visits_book_id_books` (`book_id`),
-  KEY `fk_book_visits_user_id_users` (`user_id`),
-  CONSTRAINT `fk_book_visits_book_id_books` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`),
-  CONSTRAINT `fk_book_visits_user_id_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `books`
 --
 
@@ -69,7 +49,7 @@ CREATE TABLE `books` (
   PRIMARY KEY (`id`),
   KEY `fk_books_image_id_images` (`image_id`),
   CONSTRAINT `fk_books_image_id_images` FOREIGN KEY (`image_id`) REFERENCES `images` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -122,26 +102,6 @@ CREATE TABLE `images` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `last_book_visits`
---
-
-DROP TABLE IF EXISTS `last_book_visits`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `last_book_visits` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
-  `book_id` int(11) NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `fk_last_book_visits_book_id_books` (`book_id`),
-  KEY `fk_last_book_visits_user_id_users` (`user_id`),
-  CONSTRAINT `fk_last_book_visits_book_id_books` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`),
-  CONSTRAINT `fk_last_book_visits_user_id_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `reviews`
 --
 
@@ -160,7 +120,7 @@ CREATE TABLE `reviews` (
   KEY `fk_reviews_user_id_users` (`user_id`),
   CONSTRAINT `fk_reviews_book_id_books` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`),
   CONSTRAINT `fk_reviews_user_id_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -197,7 +157,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `uq_users_login` (`login`),
   KEY `fk_users_role_id_roles` (`role_id`),
   CONSTRAINT `fk_users_role_id_roles` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -209,4 +169,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-12 19:55:27
+-- Dump completed on 2024-06-14 14:45:10

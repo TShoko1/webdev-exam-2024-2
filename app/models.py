@@ -1,9 +1,9 @@
 
-import sqlalchemy as sa
+import sqlalchemy as sa 
 from flask import url_for, current_app
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
-from sqlalchemy.dialects.mysql import YEAR
+from sqlalchemy.dialects.mysql import INTEGER
 import markdown
 import bleach
 from app import db
@@ -22,7 +22,7 @@ class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
     short_desc = db.Column(db.Text, nullable=False)
-    year_release = db.Column(YEAR, nullable=False)
+    year_release = db.Column(db.Integer, nullable=False)
     publisher = db.Column(db.String(256), nullable=False)
     author = db.Column(db.String(256), nullable=False)
     pages_volume = db.Column(db.Integer, nullable=False)
@@ -159,35 +159,3 @@ class Role(db.Model):
     def __repr__(self):
         return "<Role %r>" % self.name
 
-
-class BookVisits(db.Model):
-
-    __tablename__ = "book_visits"
-
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    book_id = db.Column(db.Integer, db.ForeignKey("books.id"), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False,
-                           server_default=sa.sql.func.now())
-
-    book = db.relationship("Book")
-    user = db.relationship("User")
-
-    def __repr__(self):
-        return "<VisitLog %r>" % self.id
-    
-class LastBookVisits(db.Model):
-
-    __tablename__ = "last_book_visits"
-
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    book_id = db.Column(db.Integer, db.ForeignKey("books.id"), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False,
-                           server_default=sa.sql.func.now())
-
-    book = db.relationship("Book")
-    user = db.relationship("User")
-
-    def __repr__(self):
-        return "<LastVisitLog %r>" % self.id

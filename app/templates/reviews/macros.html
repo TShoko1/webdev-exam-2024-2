@@ -29,7 +29,7 @@
             <img src="{{ url_for('static', filename='images/person.jpg') }}" style="max-width: 6rem;" class="rounded-circle" alt="Sample Image">
         </div>
         <div class="flex-grow-1 ms-3">
-            <h5>{{ review.user.login }} <small class="text-muted"><i>Posted on {{ review.created_at.strftime('%d.%m.%Y %H:%M') }}</i></small></h5>
+            <h5>{{ review.user.first_name }} <small class="text-muted"><i>Posted on {{ review.created_at.strftime('%d.%m.%Y %H:%M') }}</i></small></h5>
             <p><span>★</span> {{ review.rating }}</p>
             <p>{{ review.text | safe }}</p>
         </div>
